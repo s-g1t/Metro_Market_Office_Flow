@@ -1,0 +1,125 @@
+# *************************************************************************************************************************
+# Metro Market Office Flow — forecast configuration
+#
+# All tunable parameters for MOF_Forecast_Fundamentals.R live here.
+# Edit values in this file instead of hunting through the R script.
+# The script reads this file with yaml::read_yaml("config.yml") after setwd(work_dir),
+# so keep config.yml in the project working directory (work_dir).
+# *************************************************************************************************************************
+
+# ---------------------------------------------------------------------------
+# Forecast vintage
+# ---------------------------------------------------------------------------
+vintage:
+  # insert "retro" in the quotations below for a fixed backtest vintage 
+  # or "latest" for the most recent vintage in the data
+  desc: "latest"
+  # if "retro" is selected, choose a "production"; forecasts start one step beyond this date
+  retro_date: "2025-4-01"
+  
+# ---------------------------------------------------------------------------
+# Paths (relative to the project root — the RStudio .Rproj sets the working
+# directory there automatically, so no setwd() is needed anywhere).
+# Every entry in this section is a directory: the script creates any that
+# are missing, so just add new ones here and they're picked up automatically.
+# ---------------------------------------------------------------------------
+paths:
+  forecast_dir: "./Data/Forecast/Fundamentals"
+  output_dir: "./Data/Output"
+  report_dir: "./Report"
+
+# ---------------------------------------------------------------------------
+# Input datasets (public version: these replace the data download script,
+# so no raw data files or credentials are needed to run the forecast)
+# ---------------------------------------------------------------------------
+data:
+  date_desc: "date"
+  offc.fundamentals: "../Market_Office_Flow_Forecast_Agent/office_metro_market_fundamentals.csv"
+  offc.metro_fcast_vars: "../Market_Office_Flow_Forecast_Agent/office_metro_market_forecast_vars.csv"
+  offc.constr_pipeline: "../Market_Office_Flow_Forecast_Agent/office_metro_market_construction_pipeline.csv"
+
+# ---------------------------------------------------------------------------
+# Regressor lags, per office fundamental
+# Numeric values = number of quarterly lags applied to each metro driver.
+# ---------------------------------------------------------------------------
+lags:
+  total_inventory:
+    metro_gmp_smoothed: 12
+    metro_residential_supply_smoothed: 7
+    metro_constr_employment_smoothed: 6
+    metro_office_employment_smoothed: 4
+    metro_office_pop_age_25_54_smoothed: 6
+  total_vacancy:
+    inventory_delta: 2
+    inventory_delta_shock: 0
+    metro_gmp: 6
+    metro_gmp_shock: 0
+    metro_employment_total: 1
+    metro_employment_total_shock: 0
+  total_absorption:
+    metro_total_vacancy: 1
+    vacancy_shock: 0
+    inventory_delta: 1
+    metro_office_employment: 2
+    metro_office_employment_shock: 0
+  wgtavg_rent:
+    vacancy_delta: 1
+    vacancy_delta_shock: 0
+    metro_cpi: 4
+
+# ---------------------------------------------------------------------------
+# Training window start, per office fundamental (end is always the vintage date)
+# ---------------------------------------------------------------------------
+train_window:
+  total_inventory: "2006 Q1"
+  total_vacancy: "2015 Q1"
+  total_absorption: "2015 Q1"
+  wgtavg_rent: "2010 Q1"
+
+# ---------------------------------------------------------------------------
+# Final model selection
+# One row per (fundamental, class, submarket) combo. `model` must match one of
+# the candidate specs in the script: ar1_pure, ar2_pure, ar1_lag, ar2_lag.
+# ---------------------------------------------------------------------------
+final_models:
+  - {offc_fundamental_desc: "total_inventory",  class_desc: "Total",   submkt_desc: "CBD",      model: "ar1_lag"}
+  - {offc_fundamental_desc: "total_inventory",  class_desc: "Total",   submkt_desc: "Suburban", model: "ar1_lag"}
+  - {offc_fundamental_desc: "total_inventory",  class_desc: "Class A", submkt_desc: "CBD",      model: "ar1_pure"}
+  - {offc_fundamental_desc: "total_inventory",  class_desc: "Class A", submkt_desc: "Suburban", model: "ar1_lag"}
+  - {offc_fundamental_desc: "total_absorption", class_desc: "Total",   submkt_desc: "CBD",      model: "ar2_pure"}
+  - {offc_fundamental_desc: "total_absorption", class_desc: "Total",   submkt_desc: "Suburban", model: "ar2_lag"}
+  - {offc_fundamental_desc: "total_absorption", class_desc: "Class A", submkt_desc: "CBD",      model: "ar2_pure"}
+  - {offc_fundamental_desc: "total_absorption", class_desc: "Class A", submkt_desc: "Suburban", model: "ar2_pure"}
+  - {offc_fundamental_desc: "total_vacancy",    class_desc: "Total",   submkt_desc: "CBD",      model: "ar1_lag"}
+  - {offc_fundamental_desc: "total_vacancy",    class_desc: "Total",   submkt_desc: "Suburban", model: "ar1_lag"}
+  - {offc_fundamental_desc: "total_vacancy",    class_desc: "Class A", submkt_desc: "CBD",      model: "ar1_pure"}
+  - {offc_fundamental_desc: "total_vacancy",    class_desc: "Class A", submkt_desc: "Suburban", model: "ar1_lag"}
+  - {offc_fundamental_desc: "wgtavg_rent",      class_desc: "Total",   submkt_desc: "CBD",      model: "ar2_lag"}
+  - {offc_fundamental_desc: "wgtavg_rent",      class_desc: "Total",   submkt_desc: "Suburban", model: "ar2_lag"}
+  - {offc_fundamental_desc: "wgtavg_rent",      class_desc: "Class A", submkt_desc: "CBD",      model: "ar1_pure"}
+  - {offc_fundamental_desc: "wgtavg_rent",      class_desc: "Class A", submkt_desc: "Suburban", model: "ar2_lag"}
+
+# ---------------------------------------------------------------------------
+# Modeling switches
+# ---------------------------------------------------------------------------
+modeling:
+  # quarters on/after this date get COVID shock dummies; earlier quarters are zeroed out
+  covid_cutoff: "2020 Q1"
+  # forecast interval level, e.g. 95 -> 95% hilo bands
+  interval_level: 95
+  # lag order for the Ljung-Box residual diagnostic
+  ljung_box_lag: 12
+  # number of quarterly seasonal dummies (quarter_1 .. quarter_n)
+  quarter_dummies: 3
+  
+# ---------------------------------------------------------------------------
+# Output
+# ---------------------------------------------------------------------------
+output:
+  - stats.offc_fund
+  - resid.offc_fund
+  - coefs.offc_fund
+  - forecast.offc_fund
+  - finalcast.offc_fund
+  
+

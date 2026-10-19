@@ -1,0 +1,5 @@
+.DS_Store
+R/MOF_Forecast_Data_Download.R
+Report/
+Data/Forecast/
+Data/Output/
