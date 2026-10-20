@@ -25,7 +25,6 @@ The underlying data are proprietary and are **not included** in this repository.
 
 ```
 R/MOF_Forecast_Fundamentals.R   fundamentals pipeline: ingestion → lag screening → estimation → backtest
-R/MOF_Forecast_Cap_Markets.R    capital markets companion: cap rate and NOI forecasts [← to be added]
 config.yml                      every tunable: metros, fundamentals, drivers, lags, vintage
 Data/Input/                     local input CSVs (not tracked)
 docs/                           the abridged assessment write-up
